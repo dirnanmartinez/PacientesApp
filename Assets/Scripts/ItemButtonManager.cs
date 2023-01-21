@@ -48,7 +48,7 @@ void Start()
 
         var button = GetComponent<Button>();
         //button.onClick.AddListener(GameManager.instance.ARPosition);
-        button.onClick.AddListener(GameManager.instance.ARPositionObjectMenu);
+        button.onClick.AddListener(GameManager.Instance.ARPositionObjectMenu);
         button.onClick.AddListener(Create3DModel);
 
         interactionsManager = FindObjectOfType<ARInteractionsManager>();

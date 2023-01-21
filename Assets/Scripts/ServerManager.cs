@@ -33,7 +33,7 @@ public class ServerManager : MonoBehaviour
     {
         StartCoroutine(GetJsonData());
         //GameManager.instance.OnItemsMenu += CreateButtons;
-        GameManager.instance.onBoxObjetosOpen += CreateButtons;
+        GameManager.Instance.onBoxObjetosOpen += CreateButtons;
     }
 
     private void CreateButtons()
@@ -49,7 +49,7 @@ public class ServerManager : MonoBehaviour
             StartCoroutine(GetBundleImage(item.URLImageModel, itemButton));
         }
         //GameManager.instance.OnItemsMenu -= CreateButtons;
-        GameManager.instance.onBoxObjetosOpen -= CreateButtons;
+        GameManager.Instance.onBoxObjetosOpen -= CreateButtons;
     }
 
 
@@ -62,6 +62,7 @@ public class ServerManager : MonoBehaviour
         }
         else
         {
+            UIAzureManager.Instance.TextCanvas = "No es posible conectar con server";
             Debug.Log("Error ");
         }
     }

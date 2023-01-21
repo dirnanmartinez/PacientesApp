@@ -100,6 +100,22 @@ public class GameManager : MonoBehaviour
     public Text actFinNameTimer0;
     public Text feedbackFinTimer;
 
+    #region azure impletation
+
+    [SerializeField] private ServerManager serverManager;
+    public ServerManager ServerManager => serverManager;
+    public event Action OnLocalLoginSuccess;
+    public event Action<GameObject> OnARObjectPlaced;
+
+    public string CurrentARObjectNameOnStep;
+    public string CurrentAnchorIDToFind;
+    public string CurrentUserOnApp;
+
+    public int CurrentStepForSaveAnchor;
+
+    #endregion
+
+    #region texts
     [Header("Datos de la actividad para mostrar en PRACTITIONER")]
     [SerializeField] private Text _tittle0;
     [SerializeField] private Text _tittle1;
@@ -203,6 +219,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private Text _description48;
     [SerializeField] private Text _description49;
 
+    #endregion
     //VARIABLE PARA GUARDAR LAS ACTIVIDADES
     List<Activities> actividades = new List<Activities>();
     List<int> activitiesIds = new List<int>();
@@ -216,20 +233,20 @@ public class GameManager : MonoBehaviour
 
 
     //Patron Singleton
-    public static GameManager instance;
+    public static GameManager Instance;
     private void Awake()
     {
-        if (instance != null && instance != this)
+        if (Instance != null && Instance != this)
         {
             Destroy(gameObject);
         }
         else
         {
-            instance = this;
+            Instance = this;
         }
     }
 
-    //START DE LA APLICACIÓN
+    //START DE LA APLICACIï¿½N
     void Start()
     {
         //Llamo a la pantalla de loading
@@ -296,7 +313,7 @@ public class GameManager : MonoBehaviour
         UnityWebRequest www = UnityWebRequest.Get("https://serviciotfg.azurewebsites.net/api/Activity2User/GetActivitiesAssigned2User?user=" + usuario);
         yield return www.Send();
 
-        if (www.isError)
+        if (www.isNetworkError)
         {
             Debug.Log(www.error);
         }
@@ -320,7 +337,7 @@ public class GameManager : MonoBehaviour
         UnityWebRequest www = UnityWebRequest.Get("https://serviciotfg.azurewebsites.net/api/Steps/GetSteps?idActivity=" + activityId);
         yield return www.Send();
 
-        if (www.isError)
+        if (www.isNetworkError)
         {
             Debug.Log(www.error);
         }
@@ -342,7 +359,7 @@ public class GameManager : MonoBehaviour
         UnityWebRequest www = UnityWebRequest.Get("https://serviciotfg.azurewebsites.net/api/Steps/GetStep?id=" + stepId);
         yield return www.Send();
 
-        if (www.isError)
+        if (www.isNetworkError)
         {
             Debug.Log(www.error);
         }
@@ -353,7 +370,13 @@ public class GameManager : MonoBehaviour
         AsistenteStartPasoMenu();
     }
 
+    #region Azure Methods
+    public void ActivityID(int ID)
+    {
+        ApplicationAnchorsManagerServer.Instance.GetDataFromServer(ID.ToString(), GetTypeServer.Steps);
+    }
 
+    #endregion
     public void RegisterButton()
     {
         if (password1InputRegister.text == password2InputRegister.text)
@@ -368,7 +391,7 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            messageInfo.text = "LAS CONTRASEÑS NO COINCIDEN";
+            messageInfo.text = "LAS CONTRASEï¿½S NO COINCIDEN";
         }
     }
 
@@ -397,6 +420,10 @@ public class GameManager : MonoBehaviour
     {
         Debug.Log("Succesful login/account create!!");
         StartCoroutine("CollectActivitiesByUser");
+
+        ApplicationAnchorsManagerServer.Instance.GetDataFromServer(emailInput.text, GetTypeServer.Activities);
+        OnLocalLoginSuccess?.Invoke();
+
         messageText.text = "";
 
     }
@@ -405,14 +432,14 @@ public class GameManager : MonoBehaviour
     {
         Debug.Log("Error while logging account");
         Debug.Log(error.GenerateErrorReport());
-        messageText.text = "EMAIL/CONTRASEÑA INCORRECTA!! VUELVA A INTENTARLO";
+        messageText.text = "EMAIL/CONTRASEï¿½A INCORRECTA!! VUELVA A INTENTARLO";
     }
 
     private void OnErrorReg(PlayFabError error)
     {
         Debug.Log("Error while logging account");
         Debug.Log(error.GenerateErrorReport());
-        messageInfo.text = "CONTRASEÑAS NO COINCIDEN!! VUELVA A INTENTARLO";
+        messageInfo.text = "CONTRASEï¿½AS NO COINCIDEN!! VUELVA A INTENTARLO";
     }
 
 
@@ -612,7 +639,18 @@ public class GameManager : MonoBehaviour
         if (stepAux < stepsIds.Count())
         {
             StartCoroutine("GetStepsById");
+
+            string anchorID = ApplicationAnchorsManagerServer.Instance.steps[stepAux].anchorId;
+            Debug.Log("I wil Try to Get anchor for step " + stepAux + " Anchor ID: " + anchorID);
+            if (anchorID != "0")
+            {
+                CurrentARObjectNameOnStep = ApplicationAnchorsManagerServer.Instance.steps[stepAux].stepDescriptions[0].entities[0].entityName;
+                ApplicationAnchorsManagerServer.Instance.TryToFindAnchor(anchorID);
+            }
+
             stepAux++;
+
+
         }
         else
         {
@@ -755,14 +793,20 @@ public class GameManager : MonoBehaviour
 
         onEndActivityTimer0?.Invoke();
     }
+
+    public event Action Exit;
     public void SalirDoActivity()
     {
         stepAux = 0;
         stepsIds.Clear();
         stepsInActiviy.Clear();
         regUbicacionAntigua = null;
+
+        Exit?.Invoke();
+        ApplicationAnchorsManagerServer.Instance.DeleteARObjects();
+        StartCoroutine("CollectActivitiesByUser");
         //StartCoroutine("CollectStepsByActivityId");
-        InfoActivityComplete();
+        //InfoActivityComplete();
     }
 
     public void CloseApp()

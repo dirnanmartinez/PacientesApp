@@ -22,8 +22,7 @@ public class ARInteractionsManager : MonoBehaviour
     private bool isOver3DModel;
 
     private Vector2 initialTouchPos;
-
-
+    public List<GameObject> aRObjectsSelected = new List<GameObject>(); 
 
     public GameObject Item3DModel
     {
@@ -43,7 +42,13 @@ public class ARInteractionsManager : MonoBehaviour
         aRPointer = transform.GetChild(0).gameObject;
         ARRaycastManager = FindObjectOfType<ARRaycastManager>();
         //GameManager.instance.OnMainMenu += SetItemPosition;
-        GameManager.instance.onBoxObjetosOpen += SetItemPosition;
+        GameManager.Instance.Exit += Instance_Exit;
+        GameManager.Instance.onBoxObjetosOpen += SetItemPosition;
+    }
+
+    private void Instance_Exit()
+    {
+        aRObjectsSelected = new List<GameObject>();
     }
 
     private void SetItemPosition()
@@ -56,8 +61,57 @@ public class ARInteractionsManager : MonoBehaviour
         }
     }
 
+    
     // Update is called once per frame
     void Update()
+    {
+        if (Input.touchCount > 0)
+        {
+            Touch touchOne = Input.GetTouch(0);
+
+            if (touchOne.phase == TouchPhase.Began)
+            {
+                var touchPosition = touchOne.position;
+                isOverUI = isTapOverUI(touchPosition);
+                isOver3DModel = isTapOver3DModel(touchPosition);
+
+                if (isOver3DModel && !isOverUI)
+                {
+
+                    if (CanSelect(itemSelected))
+                    {
+                        aRPointer.SetActive(true);
+                        transform.position = itemSelected.transform.position;
+                        GameManager.Instance.NextPasoMenuControlador();
+                        aRObjectsSelected.Add(itemSelected);
+                        aRPointer.SetActive(false);
+                    }
+                    else
+                    {
+                        UIAzureManager.Instance.TextCanvas = "No puedes selecionar este objecto";
+                    }
+
+                }
+            }
+
+
+
+        }
+    }
+
+    public bool CanSelect(GameObject aRObjectSelected) 
+    {
+
+        foreach (GameObject aRObject in aRObjectsSelected)
+        {
+            if (ReferenceEquals(aRObject, aRObjectSelected)) 
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+    private void InteractWithObject() 
     {
         if (isInitialPosition)
         {
@@ -70,21 +124,23 @@ public class ARInteractionsManager : MonoBehaviour
                 aRPointer.SetActive(true);
                 isInitialPosition = false;
             }
+
+
         }
 
         if (Input.touchCount > 0)
         {
             Touch touchOne = Input.GetTouch(0);
-            if(touchOne.phase == TouchPhase.Began)
+            if (touchOne.phase == TouchPhase.Began)
             {
                 var touchPosition = touchOne.position;
                 isOverUI = isTapOverUI(touchPosition);
                 isOver3DModel = isTapOver3DModel(touchPosition);
             }
 
-            if(touchOne.phase == TouchPhase.Moved)
+            if (touchOne.phase == TouchPhase.Moved)
             {
-                if(ARRaycastManager.Raycast(touchOne.position, hits, TrackableType.Planes))
+                if (ARRaycastManager.Raycast(touchOne.position, hits, TrackableType.Planes))
                 {
                     Pose hitPose = hits[0].pose;
                     if (!isOverUI && isOver3DModel)
@@ -94,15 +150,15 @@ public class ARInteractionsManager : MonoBehaviour
                 }
             }
 
-            if(Input.touchCount == 2)
+            if (Input.touchCount == 2)
             {
                 Touch touchTwo = Input.GetTouch(1);
-                if(touchOne.phase == TouchPhase.Began || touchTwo.phase == TouchPhase.Began)
+                if (touchOne.phase == TouchPhase.Began || touchTwo.phase == TouchPhase.Began)
                 {
                     initialTouchPos = touchTwo.position - touchOne.position;
                 }
 
-                if(touchOne.phase ==TouchPhase.Moved || touchTwo.phase == TouchPhase.Moved)
+                if (touchOne.phase == TouchPhase.Moved || touchTwo.phase == TouchPhase.Moved)
                 {
                     Vector2 currenTouchPos = touchTwo.position - touchOne.position;
                     float angle = Vector2.SignedAngle(initialTouchPos, currenTouchPos);
@@ -111,9 +167,9 @@ public class ARInteractionsManager : MonoBehaviour
                 }
             }
 
-            if(isOver3DModel && item3DModel == null && !isOverUI)
+            if (isOver3DModel && item3DModel == null && !isOverUI)
             {
-                GameManager.instance.ARPosition();
+                GameManager.Instance.ARPosition();
                 item3DModel = itemSelected;
                 itemSelected = null;
                 aRPointer.SetActive(true);
@@ -122,13 +178,15 @@ public class ARInteractionsManager : MonoBehaviour
             }
         }
     }
-
     private bool isTapOver3DModel(Vector2 touchPosition)
     {
         Ray ray = aRCamera.ScreenPointToRay(touchPosition);
         if(Physics.Raycast(ray, out RaycastHit hit3DModel))
         {
-            if (hit3DModel.collider.CompareTag("Item"))
+
+            //No olvidar verificar el tag con el que viene con los assets bundle que descargas, en las dos aplicaciones
+        
+            if (hit3DModel.collider.CompareTag("Tittle"))
             {
                 itemSelected = hit3DModel.transform.gameObject;
                 return true;
@@ -154,6 +212,6 @@ public class ARInteractionsManager : MonoBehaviour
         Destroy(item3DModel);
         aRPointer.SetActive(false);
         //GameManager.instance.MainMenu();
-        GameManager.instance.BoxObjetosOpenMenu();
+        GameManager.Instance.BoxObjetosOpenMenu();
     }
 }

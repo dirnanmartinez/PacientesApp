@@ -23,17 +23,17 @@ public class UIManager : MonoBehaviour
 
     void Start()
     {
-        GameManager.instance.OnLoading += ActivateLoading;
-        GameManager.instance.OnLogin += ActivateLoginMenu;
-        GameManager.instance.OnRegister += ActivateRegisterMenu;
-        GameManager.instance.onDescActivity += ActivateDescActivityMenu;
-        GameManager.instance.onAsistenteInfo += ActivateAsistenteInfoMenu;
-        GameManager.instance.onAsistenteStartPaso += ActivateAsistenteStartPasoMenu;
-        GameManager.instance.onRegisterSpace += ActivateRegisterSpaceMenu;
-        GameManager.instance.onRegisterSpaceAccion += ActivateRegisterSpaceAccionMenu;
-        GameManager.instance.onNextPaso += ActivateNextPasoCanvas;
-        GameManager.instance.onEndActivity += ActivateEndActivityCanvas;
-        GameManager.instance.onEndActivityTimer0 += ActivateEndActivityCanvasTimer0;
+        GameManager.Instance.OnLoading += ActivateLoading;
+        GameManager.Instance.OnLogin += ActivateLoginMenu;
+        GameManager.Instance.OnRegister += ActivateRegisterMenu;
+        GameManager.Instance.onDescActivity += ActivateDescActivityMenu;
+        GameManager.Instance.onAsistenteInfo += ActivateAsistenteInfoMenu;
+        GameManager.Instance.onAsistenteStartPaso += ActivateAsistenteStartPasoMenu;
+        GameManager.Instance.onRegisterSpace += ActivateRegisterSpaceMenu;
+        GameManager.Instance.onRegisterSpaceAccion += ActivateRegisterSpaceAccionMenu;
+        GameManager.Instance.onNextPaso += ActivateNextPasoCanvas;
+        GameManager.Instance.onEndActivity += ActivateEndActivityCanvas;
+        GameManager.Instance.onEndActivityTimer0 += ActivateEndActivityCanvasTimer0;
     }
 
     private void ActivateLoading()
